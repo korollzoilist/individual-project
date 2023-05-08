@@ -13,7 +13,6 @@ AIOGRAM_API_TOKEN = os.environ.get("AIOGRAM_API_TOKEN")
 admin_id = "658696815"
 con = sqlite3.connect("database.db")
 cur = con.cursor()
-
 bot = Bot(token=AIOGRAM_API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
