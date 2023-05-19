@@ -109,7 +109,7 @@ async def method(message: types.Message, state: FSMContext):
 
         cur.execute("INSERT INTO Languages (user_name, language, learning_time, level, method) VALUES"
                     f"(\"{message.from_user.username}\", \"{data['languages']}\", \"{data['learning_time']}\", "
-                    f"\"{data['level']}\"\"{data['method']}\")")
+                    f"\"{data['level']}\", \"{data['method']}\")")
     await message.answer("Весь список добавленных Вами языков:")
     langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
     for lang in langs:
