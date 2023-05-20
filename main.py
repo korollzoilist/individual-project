@@ -20,12 +20,14 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 cur.execute("CREATE TABLE IF NOT EXISTS Students (ID INTEGER PRIMARY KEY, username TEXT NOT NULL)")
 cur.execute("CREATE TABLE IF NOT EXISTS Languages"
-            "(user_name TEXT NOT NULL, language TEXT NOT NULL, learning_time TEXT NOT NULL, method TEXT NOT NULL)")
+            "(user_name TEXT NOT NULL, language TEXT NOT NULL, learning_time TEXT NOT NULL, level TEXT NOT NULL, "
+            "method TEXT NOT NULL)")
 
 
 class AddLangForm(StatesGroup):
     language = State()
     learning_time = State()
+    level = State()
     method = State()
 
 
@@ -89,9 +91,15 @@ async def language(message: types.Message, state: FSMContext):
 async def learning_time(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['learning_time'] = message.text
+    await message.answer("Оцените свой уровень языка (например, начальный, средний, продвинутый)")
+    await AddLangForm.next()
 
+
+@dp.message_handler(state=AddLangForm.level)
+async def level(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['level'] = message.text
     await message.answer("Напишите, как Вы учите язык (например, простмотр фильмов, сериалов, чтение книг и т.д.)")
-
     await AddLangForm.next()
 
 
@@ -100,13 +108,14 @@ async def method(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['method'] = message.text
 
-        cur.execute("INSERT INTO Languages (user_name, language, learning_time, method) VALUES"
+        cur.execute("INSERT INTO Languages (user_name, language, learning_time, level, method) VALUES"
                     f"(\"{message.from_user.username}\", \"{data['languages']}\", \"{data['learning_time']}\", "
-                    f"\"{data['method']}\")")
+                    f"\"{data['level']}\", \"{data['method']}\")")
     await message.answer("Весь список добавленных Вами языков:")
     langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
     for lang in langs:
-        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\nМетоды обучения: {lang[3]}")
+        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\n"
+                             f"Уровень владения языком: {lang[3]}\nМетоды обучения: {lang[4]}")
     finish_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     finish_markup.add(change_data_button, add_lang_button, finish_button, remove_button, cancel_button)
     await message.answer("Данные успешно обновлены\n"
@@ -138,14 +147,14 @@ async def change_data_2(message: types.Message, state: FSMContext):
         data_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         data_markup.add(
             KeyboardButton("Название языка"), KeyboardButton("Время изучения"), KeyboardButton("Метод изучения"),
-            cancel_action_button, cancel_button)
+            KeyboardButton("Уровень владения языком"), cancel_action_button, cancel_button)
         async with state.proxy() as data:
             data['language'] = message.text
         await message.answer("Какие данные Вы хотите изменить?", reply_markup=data_markup)
         await ChangeLangForm.next()
 
 
-@dp.message_handler(Text(equals=["Название языка", "Время изучения", "Метод изучения"]),
+@dp.message_handler(Text(equals=["Название языка", "Время изучения", "Уровень владения языком", "Метод изучения"]),
                     state=ChangeLangForm.what_to_change)
 async def change_data_3(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
@@ -165,12 +174,16 @@ async def change_data_4(message: types.Message, state: FSMContext):
         elif data['what_to_change'] == "Время изучения":
             cur.execute(f"UPDATE Languages SET learning_time=\"{message.text}\" "
                         f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
+        elif data['what_to_change'] == "Уровень владения языком":
+            cur.execute(f"UPDATE Languages SET level=\"{message.text}\""
+                        f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
         elif data['what_to_change'] == "Метод изучения":
             cur.execute(f"UPDATE Languages SET method=\"{message.text}\" "
                         f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
     langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
     for lang in langs:
-        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\nМетоды обучения: {lang[3]}")
+        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\n"
+                             f"Методы оучения: {lang[3]}")
     finish_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     finish_markup.add(change_data_button, add_lang_button, finish_button, remove_button, cancel_button)
     await message.answer("Данные успешно обновлены\n"
