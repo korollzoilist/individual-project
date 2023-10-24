@@ -20,7 +20,8 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 cur.execute("CREATE TABLE IF NOT EXISTS Students (ID INTEGER PRIMARY KEY, username TEXT NOT NULL)")
 cur.execute("CREATE TABLE IF NOT EXISTS Languages"
-            "(user_name TEXT NOT NULL, language TEXT NOT NULL, learning_time TEXT NOT NULL, level TEXT NOT NULL, method TEXT NOT NULL)")
+            "(user_name TEXT NOT NULL, language TEXT NOT NULL, learning_time TEXT NOT NULL, level TEXT NOT NULL, "
+            "method TEXT NOT NULL)")
 
 
 class AddLangForm(StatesGroup):
@@ -114,7 +115,7 @@ async def method(message: types.Message, state: FSMContext):
     langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
     for lang in langs:
         await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\n"
-        					 f"Уровень владения языком: {lang[3]}\nМетоды обучения: {lang[4]}")
+                             f"Уровень владения языком: {lang[3]}\nМетоды обучения: {lang[4]}")
     finish_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     finish_markup.add(change_data_button, add_lang_button, finish_button, remove_button, cancel_button)
     await message.answer("Данные успешно обновлены\n"
@@ -174,15 +175,15 @@ async def change_data_4(message: types.Message, state: FSMContext):
             cur.execute(f"UPDATE Languages SET learning_time=\"{message.text}\" "
                         f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
         elif data['what_to_change'] == "Уровень владения языком":
-        	cur.execute(f"UPDATE Languages SET level=\"{message.text}\""
-        				f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
+            cur.execute(f"UPDATE Languages SET level=\"{message.text}\""
+                        f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
         elif data['what_to_change'] == "Метод изучения":
             cur.execute(f"UPDATE Languages SET method=\"{message.text}\" "
                         f"WHERE language=\"{data['language']}\" AND user_name=\"{message.from_user.username}\"")
     langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
     for lang in langs:
-        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\n"
-        					 f"Методы оучения: {lang[3]}")
+        await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\nУровень владения языком: {lang[3]}\n"
+                             f"Методы обучения: {lang[4]}")
     finish_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     finish_markup.add(change_data_button, add_lang_button, finish_button, remove_button, cancel_button)
     await message.answer("Данные успешно обновлены\n"
@@ -226,7 +227,8 @@ async def delete_2(message: types.Message, state: FSMContext):
         langs = cur.execute(f"SELECT * FROM Languages WHERE user_name=\"{message.from_user.username}\"").fetchall()
         if langs:
             for lang in langs:
-                await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\nМетоды обучения: {lang[3]}")
+                await message.answer(f"Язык: {lang[1]}\nВремя обучения: {lang[2]}\nУровень владения языком: {lang[3]}\n"
+                                     f"Методы обучения: {lang[4]}")
         else:
             await message.answer("Языков нет")
         finish_markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
