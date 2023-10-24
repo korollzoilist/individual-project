@@ -97,10 +97,10 @@ async def learning_time(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=AddLangForm.level)
 async def level(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['level'] = message.text
-    await message.answer("Напишите, как Вы учите язык (например, простмотр фильмов, сериалов, чтение книг и т.д.)")
-    await AddLangForm.next()
+	async with state.proxy() as data:
+		data['level'] = message.text
+	await message.answer("Напишите, как Вы учите язык (например, просмотр фильмов, сериалов, чтение книг и т.д.)")
+	await AddLangForm.next()
 
 
 @dp.message_handler(state=AddLangForm.method)
